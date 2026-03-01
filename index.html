@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gelişim - En İyi Versiyonuna Ulaş</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="./css/style.css">
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#6366f1">
+</head>
+
+<body>
+    <div id="bg-wrap">
+        <div id="bg-layer-1" class="bg-layer active"></div>
+        <div id="bg-layer-2" class="bg-layer"></div>
+        <div id="bg-overlay"></div>
+    </div>
+    <div id="app">
+        <!-- Layout will be injected here -->
+    </div>
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="./js/data.js"></script>
+    <script src="./js/components/BehaviorCard.js"></script>
+    <script src="./js/components/Tools.js"></script>
+    <script src="./js/components/Layout.js"></script>
+    <script src="./js/app.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('SW registered:', reg))
+                    .catch(err => console.log('SW registration failed:', err));
+            });
+        }
+    </script>
+</body>
+
+</html>
