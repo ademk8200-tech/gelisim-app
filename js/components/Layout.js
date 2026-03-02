@@ -56,6 +56,7 @@ window.Layout = function (content) {
                     <div class="flex gap-8">
                         <a href="#" class="nav-link">Ana Sayfa</a>
                         <a href="#dashboard" class="nav-link">Panelim</a>
+                        <a href="#profile" class="nav-link">Profilim</a>
                     </div>
                     <button id="theme-toggle" class="btn btn-outline" style="padding: 0.5rem; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
                         <i data-lucide="sun"></i>

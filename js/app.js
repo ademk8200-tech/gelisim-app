@@ -225,6 +225,120 @@ function BehaviorDetail(id) {
             });
         }
 
+        // Habit Target Counter
+        const targetValueEl = document.getElementById('habit-target-value');
+        const minusBtn = document.getElementById('habit-target-minus');
+        const plusBtn = document.getElementById('habit-target-plus');
+        const boxesContainer = document.getElementById('habit-boxes');
+        const progressText = document.getElementById('habit-progress-text');
+
+        if (targetValueEl && minusBtn && plusBtn && boxesContainer && progressText) {
+            let habitState = {
+                target: 5,
+                boxes: []
+            };
+
+            try {
+                const storedAll = JSON.parse(localStorage.getItem('habitTargets') || '{}');
+                if (storedAll && storedAll[id]) {
+                    habitState = storedAll[id];
+                }
+            } catch (e) {
+                console.error('Habit hedefleri okunamadı:', e);
+            }
+
+            function saveHabitState() {
+                try {
+                    const storedAll = JSON.parse(localStorage.getItem('habitTargets') || '{}');
+                    storedAll[id] = habitState;
+                    localStorage.setItem('habitTargets', JSON.stringify(storedAll));
+                } catch (e) {
+                    console.error('Habit hedefleri kaydedilemedi:', e);
+                }
+            }
+
+            function updateProgress() {
+                const doneCount = habitState.boxes.filter(state => state === 'done').length;
+                const total = habitState.target;
+                progressText.textContent = `Completed: ${doneCount} / ${total}`;
+            }
+
+            function renderBoxes() {
+                const total = habitState.target;
+                if (total < 0) habitState.target = 0;
+
+                if (!Array.isArray(habitState.boxes)) {
+                    habitState.boxes = [];
+                }
+
+                if (habitState.boxes.length < total) {
+                    const missing = total - habitState.boxes.length;
+                    for (let i = 0; i < missing; i++) {
+                        habitState.boxes.push('empty');
+                    }
+                } else if (habitState.boxes.length > total) {
+                    habitState.boxes = habitState.boxes.slice(0, total);
+                }
+
+                targetValueEl.textContent = String(habitState.target);
+
+                boxesContainer.innerHTML = habitState.boxes.map((state, index) => {
+                    let symbol = '';
+                    let extraClass = 'habit-box-empty';
+
+                    if (state === 'done') {
+                        symbol = '✓';
+                        extraClass = 'habit-box-done';
+                    } else if (state === 'missed') {
+                        symbol = '✗';
+                        extraClass = 'habit-box-missed';
+                    }
+
+                    return `
+                        <button type="button" class="habit-box ${extraClass}" data-index="${index}">
+                            <span>${symbol}</span>
+                        </button>
+                    `;
+                }).join('');
+
+                boxesContainer.querySelectorAll('.habit-box').forEach(box => {
+                    box.addEventListener('click', () => {
+                        const index = parseInt(box.getAttribute('data-index'), 10);
+                        const current = habitState.boxes[index];
+                        let next = 'done';
+                        if (current === 'done') next = 'missed';
+                        else if (current === 'missed') next = 'empty';
+                        habitState.boxes[index] = next;
+                        saveHabitState();
+                        renderBoxes();
+                        updateProgress();
+                    });
+                });
+
+                updateProgress();
+            }
+
+            minusBtn.addEventListener('click', () => {
+                if (habitState.target > 0) {
+                    habitState.target -= 1;
+                    renderBoxes();
+                    saveHabitState();
+                }
+            });
+
+            plusBtn.addEventListener('click', () => {
+                habitState.target += 1;
+                renderBoxes();
+                saveHabitState();
+            });
+
+            if (habitState.target < 0) {
+                habitState.target = 0;
+            }
+
+            renderBoxes();
+        }
+
         // Handle Review Submission (Mock)
         const reviewForm = document.getElementById('reviewForm');
         if (reviewForm) {
@@ -304,10 +418,26 @@ function BehaviorDetail(id) {
                     <div class="glass-panel p-6 sticky" style="position: sticky; top: 100px;">
                         <img src="${behavior.image}" alt="${behavior.title}" class="rounded-lg mb-6 w-full object-cover" style="height: 200px;">
                         <h3 class="mb-2">Harekete Geç</h3>
-                        <p class="text-muted mb-6 text-sm">Bu davranışı günlük rutinine ekleyerek gelişimini takip et.</p>
-                        <button id="addToRoutineBtn" class="btn ${isAdded ? 'btn-outline' : 'btn-primary'} w-full justify-center" ${isAdded ? 'disabled' : ''}>
+                        <p class="text-muted mb-4 text-sm">Bu davranışı günlük rutinine ekleyerek gelişimini takip et.</p>
+                        <button id="addToRoutineBtn" class="btn ${isAdded ? 'btn-outline' : 'btn-primary'} w-full justify-center mb-6" ${isAdded ? 'disabled' : ''}>
                             ${isAdded ? 'Listene Eklendi ✓' : 'Rutinime Ekle'}
                         </button>
+
+                        <div class="habit-card glass-panel p-4">
+                            <div class="flex justify-between items-center mb-3">
+                                <div>
+                                    <div class="profile-field-label" style="font-size: 0.9rem;">Rutin Hedefin</div>
+                                    <p class="text-muted" style="font-size: 0.8rem;">Bugün kaç kez tamamlamak istiyorsun?</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-center gap-3 mb-4">
+                                <button type="button" id="habit-target-minus" class="btn btn-outline btn-sm" style="padding: 0.4rem 0.75rem; font-size: 0.9rem;">-</button>
+                                <div class="habit-target-value" id="habit-target-value">5</div>
+                                <button type="button" id="habit-target-plus" class="btn btn-outline btn-sm" style="padding: 0.4rem 0.75rem; font-size: 0.9rem;">+</button>
+                            </div>
+                            <div id="habit-boxes" class="habit-boxes-row"></div>
+                            <p id="habit-progress-text" class="habit-progress-text mt-3">Completed: 0 / 5</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -381,6 +511,169 @@ function Dashboard() {
     `;
 }
 
+function Profile() {
+    setTimeout(() => {
+        const defaultProfile = {
+            fullName: 'Yeni Kullanıcı',
+            email: 'ornek@mail.com',
+            bio: 'Kendini geliştirmek için buradasın. Hedeflerini belirle ve adım adım ilerle.',
+            avatarUrl: ''
+        };
+
+        let profile = { ...defaultProfile };
+
+        try {
+            const stored = JSON.parse(localStorage.getItem('userProfile'));
+            if (stored) {
+                profile = { ...profile, ...stored };
+            }
+        } catch (e) {
+            console.error('Profil verisi okunamadı:', e);
+        }
+
+        const viewSection = document.getElementById('profile-view');
+        const form = document.getElementById('profile-form');
+        const editBtn = document.getElementById('profile-edit-btn');
+        const cancelBtn = document.getElementById('profile-cancel-btn');
+        const nameDisplay = document.getElementById('profile-name');
+        const emailDisplay = document.getElementById('profile-email');
+        const bioDisplay = document.getElementById('profile-bio');
+        const avatarContainer = document.getElementById('profile-avatar');
+        const avatarImg = document.getElementById('profile-avatar-img');
+        const avatarInitials = document.getElementById('profile-avatar-initials');
+
+        const nameInput = document.getElementById('profile-name-input');
+        const emailInput = document.getElementById('profile-email-input');
+        const bioInput = document.getElementById('profile-bio-input');
+        const avatarInput = document.getElementById('profile-avatar-input');
+
+        function getInitials(name) {
+            if (!name) return 'Y';
+            const parts = name.trim().split(' ').filter(Boolean);
+            if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+            return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+        }
+
+        function renderProfile() {
+            if (nameDisplay) nameDisplay.textContent = profile.fullName;
+            if (emailDisplay) emailDisplay.textContent = profile.email;
+            if (bioDisplay) bioDisplay.textContent = profile.bio;
+
+            if (avatarImg && avatarInitials && avatarContainer) {
+                if (profile.avatarUrl) {
+                    avatarImg.src = profile.avatarUrl;
+                    avatarImg.style.display = 'block';
+                    avatarInitials.style.display = 'none';
+                } else {
+                    avatarImg.style.display = 'none';
+                    avatarInitials.style.display = 'block';
+                    avatarInitials.textContent = getInitials(profile.fullName);
+                }
+            }
+        }
+
+        function saveProfile() {
+            try {
+                localStorage.setItem('userProfile', JSON.stringify(profile));
+            } catch (e) {
+                console.error('Profil kaydedilemedi:', e);
+            }
+        }
+
+        renderProfile();
+
+        if (editBtn && form && viewSection && nameInput && emailInput && bioInput && avatarInput) {
+            editBtn.addEventListener('click', () => {
+                nameInput.value = profile.fullName;
+                emailInput.value = profile.email;
+                bioInput.value = profile.bio;
+                avatarInput.value = profile.avatarUrl;
+
+                viewSection.style.display = 'none';
+                form.style.display = 'block';
+            });
+
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+
+                profile.fullName = nameInput.value.trim() || defaultProfile.fullName;
+                profile.email = emailInput.value.trim() || defaultProfile.email;
+                profile.bio = bioInput.value.trim() || defaultProfile.bio;
+                profile.avatarUrl = avatarInput.value.trim();
+
+                saveProfile();
+                renderProfile();
+
+                form.style.display = 'none';
+                viewSection.style.display = 'block';
+            });
+        }
+
+        if (cancelBtn && form && viewSection) {
+            cancelBtn.addEventListener('click', () => {
+                form.style.display = 'none';
+                viewSection.style.display = 'block';
+            });
+        }
+    }, 0);
+
+    return `
+    <div class="container py-12 flex justify-center">
+            <div class="glass-panel p-8 profile-card">
+                <div class="flex justify-between items-center mb-6">
+                    <h1 class="font-serif" style="font-size: 2rem;">Profilim</h1>
+                    <button id="profile-edit-btn" class="btn btn-outline btn-sm" style="font-size: 0.9rem; padding: 0.5rem 1rem;">
+                        <i data-lucide="edit-3"></i> Düzenle
+                    </button>
+                </div>
+
+                <div class="flex flex-col items-center text-center mb-6">
+                    <div id="profile-avatar" class="profile-avatar mb-4">
+                        <img id="profile-avatar-img" alt="Profil Fotoğrafı">
+                        <span id="profile-avatar-initials"></span>
+                    </div>
+                    <div>
+                        <h2 id="profile-name" class="font-serif" style="font-size: 1.5rem; margin-bottom: 0.25rem;">Yeni Kullanıcı</h2>
+                        <p id="profile-email" class="text-muted" style="font-size: 0.95rem;">ornek@mail.com</p>
+                    </div>
+                </div>
+
+                <div id="profile-view">
+                    <div class="glass-panel p-4 mb-4">
+                        <div class="profile-field-label">Biyografi</div>
+                        <p id="profile-bio" class="profile-field-value">
+                            Kendini geliştirmek için buradasın. Hedeflerini belirle ve adım adım ilerle.
+                        </p>
+                    </div>
+                </div>
+
+                <form id="profile-form" style="display: none; text-align: left; margin-top: 1rem;">
+                    <div class="mb-4">
+                        <label for="profile-name-input" class="profile-field-label">Ad Soyad</label>
+                        <input id="profile-name-input" type="text" class="glass w-full p-3 rounded-lg" style="background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); color: white;">
+                    </div>
+                    <div class="mb-4">
+                        <label for="profile-email-input" class="profile-field-label">E-posta</label>
+                        <input id="profile-email-input" type="email" class="glass w-full p-3 rounded-lg" style="background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); color: white;">
+                    </div>
+                    <div class="mb-4">
+                        <label for="profile-bio-input" class="profile-field-label">Biyografi</label>
+                        <textarea id="profile-bio-input" class="glass w-full p-3 rounded-lg" style="min-height: 100px; background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); color: white; resize: vertical;"></textarea>
+                    </div>
+                    <div class="mb-4">
+                        <label for="profile-avatar-input" class="profile-field-label">Profil Fotoğrafı URL</label>
+                        <input id="profile-avatar-input" type="url" class="glass w-full p-3 rounded-lg" style="background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); color: white;" placeholder="https://...">
+                    </div>
+                    <div class="flex justify-end gap-2 mt-6">
+                        <button type="button" id="profile-cancel-btn" class="btn btn-outline">Vazgeç</button>
+                        <button type="submit" id="profile-save-btn" class="btn btn-primary">Kaydet</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    `;
+}
+
 // Router & App
 const app = document.getElementById('app');
 let cleanup = null;
@@ -402,6 +695,8 @@ function router() {
         content = BehaviorDetail(id);
     } else if (hash === '#dashboard') {
         content = Dashboard();
+    } else if (hash === '#profile') {
+        content = Profile();
     } else {
         content = Home();
     }
