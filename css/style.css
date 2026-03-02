@@ -646,3 +646,113 @@ h6 {
     margin-bottom: 0.5rem;
     color: white;
 }
+
+/* PROFIL SAYFASI STILLERI */
+.profile-card {
+    max-width: 640px;
+    margin: 0 auto;
+}
+
+.profile-avatar {
+    width: 96px;
+    height: 96px;
+    border-radius: 9999px;
+    overflow: hidden;
+    border: 2px solid var(--glass-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(15, 23, 42, 0.7);
+    box-shadow: var(--glass-shadow);
+}
+
+.profile-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: none;
+}
+
+.profile-avatar span {
+    font-size: 2rem;
+    font-weight: 600;
+    color: var(--text-main);
+}
+
+.profile-field-label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    margin-bottom: 0.25rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.profile-field-value {
+    font-size: 0.95rem;
+    color: var(--text-main);
+}
+
+/* Habit Target Counter */
+.habit-card {
+    border-radius: 0.75rem;
+    background: rgba(15, 23, 42, 0.7);
+}
+
+.habit-target-value {
+    min-width: 48px;
+    text-align: center;
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.habit-boxes-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: flex-start;
+}
+
+.habit-box {
+    width: 32px;
+    height: 32px;
+    border-radius: 0.5rem;
+    border: 1px solid var(--glass-border);
+    background: rgba(15, 23, 42, 0.6);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.9rem;
+}
+
+.habit-box span {
+    pointer-events: none;
+}
+
+.habit-box:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+}
+
+.habit-box-empty {
+    color: var(--text-muted);
+}
+
+.habit-box-done {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+    color: #fff;
+    border-color: transparent;
+}
+
+.habit-box-missed {
+    background: rgba(148, 27, 81, 0.9);
+    color: #fee2e2;
+    border-color: rgba(248, 113, 113, 0.8);
+}
+
+.habit-progress-text {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
